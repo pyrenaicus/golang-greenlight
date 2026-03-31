@@ -10,10 +10,10 @@ import (
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title   string   `json:"title"`
-		Year    int      `json:"year"`
-		Runtime int      `json:"runtime"`
-		Genres  []string `json:"genres"`
+		Title   string       `json:"title"`
+		Year    int          `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
 	}
 
 	// Use readJSON() helper to decode the request body into the input struct.
@@ -21,7 +21,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	// to send a 400 with the error msg.
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		app.badRequestResponse(w, r, &input)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
