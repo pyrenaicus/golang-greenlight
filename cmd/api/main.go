@@ -42,7 +42,7 @@ func main() {
 
 	// read DSN value from the db-dsn command-line flag into the config struct,
 	// default to our development DSN if no flag is provided.
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:pa55word@localhost/greenlight", "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
 
 	flag.Parse()
 
