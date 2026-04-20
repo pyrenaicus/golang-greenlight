@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"greenlight.cnoua.org/internal/data"
+
 	// we alias this import to the blank identifier to stop the compiler
 	// complaining that the package isn't being used.
 	_ "github.com/lib/pq"
@@ -35,6 +37,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
@@ -71,9 +74,12 @@ func main() {
 	// log a success message.
 	logger.Info("database connection pool established")
 
+	// use data.NewModels() to initialize a Models struct, passing in the
+	// connection pool as a parameter.
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	// declare a HTTP server
