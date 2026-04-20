@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"greenlight.cnoua.org/internal/validator"
+
+	"github.com/lib/pq" // PostgreSQL driver for database/sql
 )
 
 // MovieModel struct type which wraps a sql.DB connection pool.
@@ -13,9 +15,23 @@ type MovieModel struct {
 }
 
 // CRUD placeholder methods
-
+// Insert() accepts a pointer to a Movie struct, which should contain the data
+// for the new record.
 func (m MovieModel) Insert(movie *Movie) error {
-	return nil
+	// define a SQL query which inserts a new record in the movies table
+	// and returns the system generated data.
+	query := `
+		INSERT INTO movies (title, year, runtime, genres)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, creader_at, version`
+
+	// create an args array containing the values for the placeholder parameters.
+	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
+
+	// use the QueryRow() method to execute the SQL query on our connection pool,
+	// passing in the elements of the args slice as variadic arguments and scanning
+	// the system-generated values into the movie struct.
+	return m.DB.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (m MovieModel) Get(id int) (*Movie, error) {
