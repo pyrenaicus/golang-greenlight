@@ -1,10 +1,34 @@
 package data
 
 import (
+	"database/sql"
 	"time"
 
 	"greenlight.cnoua.org/internal/validator"
 )
+
+// MovieModel struct type which wraps a sql.DB connection pool.
+type MovieModel struct {
+	DB *sql.DB
+}
+
+// CRUD placeholder methods
+
+func (m MovieModel) Insert(movie *Movie) error {
+	return nil
+}
+
+func (m MovieModel) Get(id int) (*Movie, error) {
+	return nil, nil
+}
+
+func (m MovieModel) Update(movie *Movie) error {
+	return nil
+}
+
+func (m MovieModel) Delete(id int) error {
+	return nil
+}
 
 type Movie struct {
 	ID        int       `json:"id"`
