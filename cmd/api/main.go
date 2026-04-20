@@ -41,8 +41,8 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
 	// read DSN value from the db-dsn command-line flag into the config struct,
-	// default to our development DSN if no flag is provided.
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
+	// default to our development DSN (read from env var) if no flag is provided.
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
 
 	flag.Parse()
 
