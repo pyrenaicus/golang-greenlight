@@ -23,7 +23,7 @@ func (m MovieModel) Insert(movie *Movie) error {
 	query := `
 		INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, creader_at, version`
+		RETURNING id, created_at, version`
 
 	// create an args array containing the values for the placeholder parameters.
 	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
