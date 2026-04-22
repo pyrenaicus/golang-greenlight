@@ -9,6 +9,7 @@ import (
 // that doesn't exist on our database.
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
 )
 
 // create a Models struct which wraps all our models.
