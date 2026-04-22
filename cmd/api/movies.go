@@ -117,12 +117,16 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Declare an input struct to hold the expected data from the client.
+	// Declare an input struct to hold the expected data from the client. Use
+	// pointers for the Title, Year and Runtime fields. Pointers have the zero
+	// value nil, then to see if a client has provided a particular key-value
+	// pair in the JSON, we can check wether the corrresponding field in the
+	// input struct equals nil or not.
 	var input struct {
-		Title   string       `json:"title"`
-		Year    int          `json:"year"`
-		Runtime data.Runtime `json:"runtime"`
-		Genres  []string     `json:"genres"`
+		Title   *string       `json:"title"`
+		Year    *int          `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
+		Genres  []string      `json:"genres"` // Slices have zero value as nil.
 	}
 
 	// Read the JSON request body data into the input struct.
@@ -132,12 +136,29 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Copy the values from the request body to the appropriate fields of the
-	// movie record.
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
+	// If input.Title value is nil, then we know no corrresponding "title"
+	// key-value pair was provided in the JSON request body. So we move on and
+	// leave the movie record unchanged. Otherwise, we update the movie record
+	// with the new title value. Because input.Title is now a pointer to a string
+	// we need to dereference the pointer using the * operator to get the
+	// underlying value before assigning it to our movie record.
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+
+	// Do the same for the other fields in the input struct.
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+
+	if input.Genres != nil {
+		movie.Genres = input.Genres // We don't need to dereference a slice, a slice
+		// already holds a pointer to an underlying array.
+	}
 
 	// Validate the updated movie record, sending the client a 422 Unprocessable
 	// Entity response if any checks fail.
