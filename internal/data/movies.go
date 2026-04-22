@@ -30,10 +30,14 @@ func (m MovieModel) Insert(movie *Movie) error {
 	// create an args array containing the values for the placeholder parameters.
 	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 
-	// use the QueryRow() method to execute the SQL query on our connection pool,
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// use the QueryRowContext() method to execute the SQL query on our connection pool,
 	// passing in the elements of the args slice as variadic arguments and scanning
 	// the system-generated values into the movie struct.
-	return m.DB.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (m MovieModel) Get(id int) (*Movie, error) {
@@ -113,12 +117,16 @@ func (m MovieModel) Update(movie *Movie) error {
 		movie.Version,
 	}
 
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	// Execute the SQL query. If no matching row could be found, we know the movie
 	// version has changed (or the record has been deleted) and we return our
 	// custom ErrEditConflict error. To execute the query we use the QueryRow()
 	// method to execute the query, passing in the args slice as a variadic
 	// parameter and scanning the new version value into the movie struct.
-	err := m.DB.QueryRow(query, args...).Scan(&movie.Version)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -141,9 +149,13 @@ func (m MovieModel) Delete(id int) error {
 		DELETE FROM movies
 		WHERE id = $1`
 
-	// Execute the SQL query using Exec() method, passing in the id variable as
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Execute the SQL query using ExecContext() method, passing in the id variable as
 	// the value for the placeholder parameter. Exec() returns a sql.Result value.
-	result, err := m.DB.Exec(query, id)
+	result, err := m.DB.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
