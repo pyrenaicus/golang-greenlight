@@ -47,7 +47,7 @@ func (m MovieModel) Get(id int) (*Movie, error) {
 
 	// Define the SQL query for retrieving the movie data.
 	query := `
-					SELECT pg_sleep(8), id, created_at, title, year, runtime, genres, version
+					SELECT id, created_at, title, year, runtime, genres, version
 					FROM movies
 					WHERE id = $1
 					`
@@ -71,7 +71,6 @@ func (m MovieModel) Get(id int) (*Movie, error) {
 	// fields of the Movie struct. We need to convert the scan target for the
 	// genres column using the pq.Array() adapter function.
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
-		&[]byte{},
 		&movie.ID,
 		&movie.CreatedAt,
 		&movie.Title,
