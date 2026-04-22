@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -54,11 +55,22 @@ func (m MovieModel) Get(id int) (*Movie, error) {
 	// Declare a Movie struct to hold the data returned by the query.
 	var movie Movie
 
+	// Use the context.WithTimeout() function to create a context.Context which
+	// carries a 3-second timeout deadline. We are using the empty
+	// context.Background() as the 'parent' context.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	// Importantly, use defer to make sure we cance the context before the Get()
+	// method returns.
+	defer cancel()
+
+	// Use the QueryRowContext() method to execute the query, passing in the
+	// context (including the deadline) as the first argument.
 	// Execute the query using the QueryRow() method, passing in the provided id
 	// value as a placeholder parameter, and scan the response data into the
 	// fields of the Movie struct. We need to convert the scan target for the
 	// genres column using the pq.Array() adapter function.
-	err := m.DB.QueryRow(query, id).Scan(
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&[]byte{},
 		&movie.ID,
 		&movie.CreatedAt,
