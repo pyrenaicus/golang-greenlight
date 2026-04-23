@@ -12,7 +12,7 @@ type Filters struct {
 	SortSafelist []string
 }
 
-func ValidateFilter(v *validator.Validator, f Filters) {
+func ValidateFilters(v *validator.Validator, f Filters) {
 	// Check that the page and page_size parameters contain sensible values.
 	v.Check(f.Page > 0, "page", "must be greater than 0")
 	v.Check(f.Page <= 10_000_000, "page", "must be a maximum of 10 million")
