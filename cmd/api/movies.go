@@ -222,11 +222,9 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	// To keep things consistent with our other handlers, we'll define an input
 	// struct to hold the expected values from the request query string.
 	var input struct {
-		Title    string
-		Genres   []string
-		Page     int
-		PageSize int
-		Sort     string
+		Title        string
+		Genres       []string
+		data.Filters // Embed the Filters struct
 	}
 
 	// Initialize a new Validator instance.
