@@ -180,12 +180,12 @@ func (m MovieModel) Delete(id int) error {
 // GetAll() returns a slice of movies. It accepts the various filter parameters
 // as arguments.
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, error) {
-	// Update the SQL query to include the filter conditions.
-	// @> symbol is contains operator for PostgreSQL arrays.
+	// Update the SQL query to include full-text search.
+	// @@ is the matches operator. @> is the contains operator for PostgreSQL arrays.
 	query := `
 		SELECT id, created_at, title, year, runtime, genres, version
 		FROM movies
-		WHERE (LOWER(title) = LOWER($1) OR $1 = '')
+		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (genres @> $2 OR $2 = '{}')
 		ORDER BY id`
 
