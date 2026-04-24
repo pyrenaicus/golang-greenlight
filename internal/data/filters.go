@@ -26,6 +26,15 @@ func (f Filters) sortColumn() string {
 	panic("unsafe sort parameter: " + f.Sort)
 }
 
+// sortDirection() returns the dort direction depending on the prefix character
+// of the Sort field.
+func (f Filters) sortDirection() string {
+	if strings.HasPrefix(f.Sort, "-") {
+		return "DESC"
+	}
+	return "ASC"
+}
+
 func ValidateFilters(v *validator.Validator, f Filters) {
 	// Check that the page and page_size parameters contain sensible values.
 	v.Check(f.Page > 0, "page", "must be greater than 0")
