@@ -1,6 +1,9 @@
 package data
 
 import (
+	"slices"
+	"strings"
+
 	"greenlight.cnoua.org/internal/validator"
 )
 
@@ -10,6 +13,26 @@ type Filters struct {
 	PageSize     int
 	Sort         string
 	SortSafelist []string
+}
+
+// sortColumn() checks that the client-provided Sort field matches one of the
+// entries in our safelist and if it does, extract the column name from the
+// Sort field by stripping the leading hyphen character, if it exists.
+func (f Filters) sortColumn() string {
+	if slices.Contains(f.SortSafelist, f.Sort) {
+		return strings.TrimPrefix(f.Sort, "-")
+	}
+
+	panic("unsafe sort parameter: " + f.Sort)
+}
+
+// sortDirection() returns the dort direction depending on the prefix character
+// of the Sort field.
+func (f Filters) sortDirection() string {
+	if strings.HasPrefix(f.Sort, "-") {
+		return "DESC"
+	}
+	return "ASC"
 }
 
 func ValidateFilters(v *validator.Validator, f Filters) {
