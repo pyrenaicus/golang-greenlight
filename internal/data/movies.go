@@ -188,7 +188,7 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	// ordering.
 	// Include the window function which counts the total filtered records.
 	query := fmt.Sprintf(`
-		SELECT count(*) OVER() id, created_at, title, year, runtime, genres, version
+		SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version
 		FROM movies
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (genres @> $2 OR $2 = '{}')
