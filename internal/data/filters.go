@@ -15,6 +15,35 @@ type Filters struct {
 	SortSafelist []string
 }
 
+// Metadata struct for holding pagination metadata
+type Metadata struct {
+	CurrentPage  int `json:"current_page,omitzero"`
+	PageSize     int `json:"page_size,omitzero"`
+	FirstPage    int `json:"first_page,omitzero"`
+	LastPage     int `json:"last_page,omitzero"`
+	TotalRecords int `json:"total_records,omitzero"`
+}
+
+// calculateMetadata() returns the appropriate pagination metadata values
+// given the total number of records, current page, and page size values.
+// Note that when the last page value is calculated we are dividing two int
+// values, and the result will also be an int type, with the modulus or
+// remainder dropped.
+func calculateMetadata(totalRecords, page, pageSize int) Metadata {
+	if totalRecords == 0 {
+		// Return an empty Metadata struct if there are no records.
+		return Metadata{}
+	}
+
+	return Metadata{
+		CurrentPage:  page,
+		PageSize:     pageSize,
+		FirstPage:    1,
+		LastPage:     (totalRecords + pageSize - 1) / pageSize,
+		TotalRecords: totalRecords,
+	}
+}
+
 // sortColumn() checks that the client-provided Sort field matches one of the
 // entries in our safelist and if it does, extract the column name from the
 // Sort field by stripping the leading hyphen character, if it exists.
@@ -33,6 +62,14 @@ func (f Filters) sortDirection() string {
 		return "DESC"
 	}
 	return "ASC"
+}
+
+func (f Filters) limit() int {
+	return f.PageSize
+}
+
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
 }
 
 func ValidateFilters(v *validator.Validator, f Filters) {
