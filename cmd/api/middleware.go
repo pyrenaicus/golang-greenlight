@@ -42,6 +42,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		// Call limiter.Allow() to see if the request is permitted, and if it's not,
 		// then we call the rateLimitExceededResponse() helper to return a 429 Too
 		// Many Requests response.
+		// If there are no tokens left in the bucket, Allow() returns false.
 		if !limiter.Allow() {
 			app.rateLimitExceededResponse(w, r)
 			return
