@@ -35,6 +35,11 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 }
 
 func (app *application) rateLimit(next http.Handler) http.Handler {
+	// If rate limiting is not enabled, return the next handler in the chain with
+	// no further action
+	if !app.config.limiter.enabled {
+		return next
+	}
 	// Define a client struct to hold the rate limiter & last seen for each client.
 	type client struct {
 		limiter  *rate.Limiter
@@ -81,7 +86,10 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		// Check to see if the IP address already exists in the map. If it doesn't,
 		// initialize a new rate limiter and add the IP and limiter to the map.
 		if _, found := clients[ip]; !found {
-			clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
+			clients[ip] = &client{
+				// Use the requests-per-second & burst values from config struct.
+				limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
+			}
 		}
 
 		// Update the last seen time for the client.
