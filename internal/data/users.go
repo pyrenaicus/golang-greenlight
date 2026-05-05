@@ -8,6 +8,11 @@ import (
 	"greenlight.cnoua.org/internal/validator"
 )
 
+// Define a custom ErrDuplicateEmail error.
+var (
+	ErrDuplicateEmail = errors.New("duplicate email")
+)
+
 // Define a User struct to represent an individual user. We are using json:"-"
 // struct tag to prevent the Password and Version fields from appearing in any
 // output when we encode it to JSON. Password field uses the custom password
