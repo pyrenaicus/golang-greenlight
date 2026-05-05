@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -42,4 +43,20 @@ func (p *password) Set(plaintextPassword string) error {
 	p.hash = hash
 
 	return nil
+}
+
+// Matches() checks whether the provided plaintext password matches the hashed
+// password stored in the struct, returning true if it matches and false if not.
+func (p *password) Matches(plaintextPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(p.hash, []byte(plaintextPassword))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
 }
