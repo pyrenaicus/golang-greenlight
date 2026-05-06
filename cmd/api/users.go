@@ -65,17 +65,25 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Call the Send() method on Mailer, passing in the user's email address, name
-	// of the template file, and the User struct containing the new user's data.
-	err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	// Launch a goroutine which runs an anonymous function sending the email.
+	go func() {
+		// Call the Send() method on Mailer, passing in the user's email address, name
+		// of the template file, and the User struct containing the new user's data.
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
+		if err != nil {
+			// app.serverErrorResponse(w, r, err)
+			// If there is an error sending the email we use the app.logger.Error()
+			// helper to manage it, instead of the app.serverErrorResponse() helper like
+			// we did before.
+			app.logger.Error(err.Error())
+			// return
+		}
+	}()
 
-	// Write a JSON response containing the user data along with a 201 Created
-	// status code.
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
+	// Write a JSON response containing the user data along with a 202 Accepted
+	// status code. This status code indicated that the request has been accepted
+	// for processing, but the processing has not yet been completed.
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
