@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	"greenlight.cnoua.org/internal/data"
@@ -47,11 +48,15 @@ type config struct {
 
 // a struct holding the dependencies for our HTTP handelrs, helpers
 // and middleware.
+// Include a sync.WaitGroup. The zero value for a sync.WaitGroup type is a
+// valid, usable, sync.WaitGroup with a 'counter' value of 0, so we don't need
+// to do anything else to initialize it before we can use it.
 type application struct {
 	config config
 	logger *slog.Logger
 	models data.Models
 	mailer *mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {
