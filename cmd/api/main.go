@@ -81,7 +81,7 @@ func main() {
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "123301edaad1e1", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "0bcbfd5e4cd787", "SMTP password")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.cnoua.org", "SMTP sender")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.cnoua.org>", "SMTP sender")
 
 	flag.Parse()
 
