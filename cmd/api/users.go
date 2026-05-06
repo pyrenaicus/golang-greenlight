@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"greenlight.cnoua.org/internal/data"
@@ -67,6 +68,15 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// Launch a goroutine which runs an anonymous function sending the email.
 	go func() {
+		// Run a deferred function which uses recover() to catch any panic, and log
+		// an error message instead of terminating the application.
+		defer func() {
+			pv := recover()
+			if pv != nil {
+				app.logger.Error(fmt.Sprintf("%v", pv))
+			}
+		}()
+
 		// Call the Send() method on Mailer, passing in the user's email address, name
 		// of the template file, and the User struct containing the new user's data.
 		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
