@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"greenlight.cnoua.org/internal/data"
@@ -66,29 +65,18 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Launch a goroutine which runs an anonymous function sending the email.
-	go func() {
-		// Run a deferred function which uses recover() to catch any panic, and log
-		// an error message instead of terminating the application.
-		defer func() {
-			pv := recover()
-			if pv != nil {
-				app.logger.Error(fmt.Sprintf("%v", pv))
-			}
-		}()
-
+	// Use the background helper to execute an anonymous function sending the email.
+	app.background(func() {
 		// Call the Send() method on Mailer, passing in the user's email address, name
 		// of the template file, and the User struct containing the new user's data.
 		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
 		if err != nil {
-			// app.serverErrorResponse(w, r, err)
 			// If there is an error sending the email we use the app.logger.Error()
 			// helper to manage it, instead of the app.serverErrorResponse() helper like
 			// we did before.
 			app.logger.Error(err.Error())
-			// return
 		}
-	}()
+	})
 
 	// Write a JSON response containing the user data along with a 202 Accepted
 	// status code. This status code indicated that the request has been accepted
