@@ -111,7 +111,7 @@ func (m *Mailer) Send(recipient string, templateFile string, data any) error {
 	}
 
 	msg.Subject(subject.String())
-	msg.SetBodyString(mail.TypeTextHTML, plainBody.String())
+	msg.SetBodyString(mail.TypeTextPlain, plainBody.String())
 	msg.AddAlternativeString(mail.TypeTextHTML, htmlBody.String())
 
 	// Call DialAndSend() method on the dialer, passing in the message to send.

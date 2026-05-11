@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"greenlight.cnoua.org/internal/data"
 	"greenlight.cnoua.org/internal/validator"
@@ -65,9 +66,40 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Write a JSON response containing the user data along with a 201 Created
-	// status code.
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
+	// After the user record has been created in the database, generate a new
+	// activation token for the user.
+	token, err := app.models.Tokens.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Use the background helper to execute an anonymous function sending the email.
+	app.background(func() {
+		// As there are now multiple pieces of data that we want to pass to our email
+		// templates, we create a map to act as a 'holding structure' for the data.
+		// This contains the plaintext version of the activation token along with the
+		// user ID.
+		data := map[string]any{
+			"activationToken": token.Plaintext,
+			"userID":          user.ID,
+		}
+
+		// Call the Send() method on Mailer, passing in the map as dynamic data and
+		// the name of the template file.
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl", data)
+		if err != nil {
+			// If there is an error sending the email we use the app.logger.Error()
+			// helper to manage it, instead of the app.serverErrorResponse() helper like
+			// we did before.
+			app.logger.Error(err.Error())
+		}
+	})
+
+	// Write a JSON response containing the user data along with a 202 Accepted
+	// status code. This status code indicated that the request has been accepted
+	// for processing, but the processing has not yet been completed.
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

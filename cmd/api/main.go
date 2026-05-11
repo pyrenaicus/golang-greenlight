@@ -6,9 +6,11 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	"greenlight.cnoua.org/internal/data"
+	"greenlight.cnoua.org/internal/mailer"
 
 	// we alias this import to the blank identifier to stop the compiler
 	// complaining that the package isn't being used.
@@ -35,14 +37,26 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 // a struct holding the dependencies for our HTTP handelrs, helpers
 // and middleware.
+// Include a sync.WaitGroup. The zero value for a sync.WaitGroup type is a
+// valid, usable, sync.WaitGroup with a 'counter' value of 0, so we don't need
+// to do anything else to initialize it before we can use it.
 type application struct {
 	config config
 	logger *slog.Logger
 	models data.Models
+	mailer *mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {
@@ -66,6 +80,14 @@ func main() {
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
+	// Read the SMTP server configuration settings into the config struct, using
+	// the Mailtrap settings as the default values.
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "123301edaad1e1", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "0bcbfd5e4cd787", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.cnoua.org>", "SMTP sender")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -85,12 +107,20 @@ func main() {
 	// log a success message.
 	logger.Info("database connection pool established")
 
+	// Initialize a new Mailer instance using the settings from the command-line
+	// flags.
+	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 	// use data.NewModels() to initialize a Models struct, passing in the
-	// connection pool as a parameter.
+	// connection pool as a parameter. Add Mailer to application struct.
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer,
 	}
 
 	// Call app.server() to start the server.
