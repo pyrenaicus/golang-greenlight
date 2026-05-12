@@ -167,6 +167,6 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	// Send the updated user details to the client in a JSON response.
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
-		app.serverErrorResponse(w, r, err
+		app.serverErrorResponse(w, r, err)
 	}
 }
