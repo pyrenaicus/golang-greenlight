@@ -40,7 +40,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.invalidCredentialResponse(w, r)
+			app.invalidCredentialsResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -57,7 +57,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	// If the passwords don't match, then we call the app.invalidCredentialResponse()
 	// helepr again and return.
 	if !match {
-		app.invalidCredentialResponse(w, r)
+		app.invalidCredentialsResponse(w, r)
 		return
 	}
 
