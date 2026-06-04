@@ -1,0 +1,62 @@
+package data
+
+import (
+	"context"
+	"database/sql"
+	"slices"
+	"time"
+)
+
+// Define a Permissions slice which we will use to hold the permissions codes
+// (such as "movies:read" and "movies:write") for a single user.
+type Permissions []string
+
+// Include() is a helper method to check whether the Permissions slice contains
+// a specific permissions code.
+func (p Permissions) Include(code string) bool {
+	return slices.Contains(p, code)
+}
+
+// Define the PermissionModel type.
+type PermissionModel struct {
+	DB *sql.DB
+}
+
+// GetAllForUser() method returns all permission codes for a specific user in a
+// Permissions slice. It uses the standard pattern for retrieving multiple data
+// rows in a SQL query.
+func (m PermissionModel) GetAllForUser(userID int) (Permissions, error) {
+	query := `
+	SELECT permissions.code
+	FROM permissions
+	INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
+	INNER JOIN users ON users_permissions.user_id = users.id
+	WHERE users.id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var permissions Permissions
+
+	for rows.Next() {
+		var permission string
+
+		err := rows.Scan(&permission)
+		if err != nil {
+			return nil, err
+		}
+
+		permissions = append(permissions, permission)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return permissions, nil
+}
