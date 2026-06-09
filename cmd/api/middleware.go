@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -220,4 +221,59 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 
 	// Wrap fn with requireAuthenticatedUser() middleware before returning it.
 	return app.requireAuthenticatedUser(fn)
+}
+
+func (app *application) requirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the user from the request context.
+		user := app.contextGetUser(r)
+
+		// Get the slice of permissions for the user.
+		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		// Check if the slice includes the required permission. If it doesn't, then
+		// return a 403 Forbidden response.
+		if !permissions.Include(code) {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		// Otherwise they have the required permission so we call the next handler
+		// in the chain.
+		next.ServeHTTP(w, r)
+	}
+
+	// Wrap this with the requireActivatedUser() middleware before returning it.
+	return app.requireActivatedUser(fn)
+}
+
+func (app *application) enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Add the "Vary: Origin" header
+		w.Header().Set("Vary", "Origin")
+
+		// Get the value of the request's Origin header.
+		origin := r.Header.Get("Origin")
+
+		// Only run this if there's an Origin request header present.
+		if origin != "" {
+			// Loop through the list of trusted origins, checking to see if the request
+			// origin matches one of them. If there are no matches, then the loop won't
+			// be iterated.
+			for range app.config.cors.trustedOrigins {
+				if slices.Contains(app.config.cors.trustedOrigins, origin) {
+					// If there's a match, set an "Access-Control-Allow-Origin" response
+					// header with the request origin as the value and break out of the loop.
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					break
+				}
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

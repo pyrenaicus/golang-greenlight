@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"slices"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 // Define a Permissions slice which we will use to hold the permissions codes
@@ -59,4 +61,19 @@ func (m PermissionModel) GetAllForUser(userID int) (Permissions, error) {
 	}
 
 	return permissions, nil
+}
+
+// AddForUser() adds the provided permission codes to a specific user. We use a
+// variadic parameter for the codes so that we can assign multiple permissions
+// in a single call.
+func (m PermissionModel) AddForUser(userID int, codes ...string) error {
+	query := `
+		INSERT INTO users_permissions
+		SELECT $1, permissions.id FROM permissions WHERE permissions.code = ANY($2)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, userID, pq.Array(codes))
+	return err
 }
