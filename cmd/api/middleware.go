@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -252,7 +253,26 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 
 func (app *application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Add the "Vary: Origin" header
+		w.Header().Set("Vary", "Origin")
+
+		// Get the value of the request's Origin header.
+		origin := r.Header.Get("Origin")
+
+		// Only run this if there's an Origin request header present.
+		if origin != "" {
+			// Loop through the list of trusted origins, checking to see if the request
+			// origin matches one of them. If there are no matches, then the loop won't
+			// be iterated.
+			for range app.config.cors.trustedOrigins {
+				if slices.Contains(app.config.cors.trustedOrigins, origin) {
+					// If there's a match, set an "Access-Control-Allow-Origin" response
+					// header with the request origin as the value and break out of the loop.
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					break
+				}
+			}
+		}
 
 		next.ServeHTTP(w, r)
 	})
