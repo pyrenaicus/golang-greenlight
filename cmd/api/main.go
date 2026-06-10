@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"flag"
 	"log/slog"
 	"os"
@@ -130,6 +131,10 @@ func main() {
 	}
 	// use data.NewModels() to initialize a Models struct, passing in the
 	// connection pool as a parameter. Add Mailer to application struct.
+	// Publish a new "version" variable in the expvar handler containing our
+	// application version number.
+	expvar.NewString("version").Set(version)
+
 	app := &application{
 		config: cfg,
 		logger: logger,
