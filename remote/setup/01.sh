@@ -29,7 +29,7 @@ export LC_ALL=en_US.UTF-8
 add-apt-repository --yes universe
 
 # Update all software packages.
-apt Update
+apt update
 
 # Set the system timezone and install all locales.
 timedatectl set-timezone ${TIMEZONE}
@@ -55,8 +55,8 @@ ufw --force enable
 apt --yes install fail2ban
 
 # Install the migrate CLI tool.
-curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux.amd64.tar.gz | tar xvz
-mv migrate.linux.amd64 /usr/local/bin/migrate
+curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
+mv migrate.linux-amd64 /usr/local/bin/migrate
 
 # Install PostgreSQL.
 apt --yes install postgresql
