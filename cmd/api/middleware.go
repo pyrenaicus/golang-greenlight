@@ -327,7 +327,7 @@ func (mw *metricsResponseWriter) Header() http.Header {
 // response status code (if it hasn't already been recorded) and set the
 // headerWritten field to true to indicate that the HTTP response headers
 // have been written.
-func (mw metricsResponseWriter) WriteHeader(statusCode int) {
+func (mw *metricsResponseWriter) WriteHeader(statusCode int) {
 	mw.wrapped.WriteHeader(statusCode)
 
 	if !mw.headerWritten {
