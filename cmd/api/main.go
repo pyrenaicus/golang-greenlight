@@ -73,7 +73,7 @@ func main() {
 
 	// Use the empty string "" as the default value for the db-dsn cli flag,
 	// rather than os.Getenv("GREENLIGHT_DB_DSN") like we were previously.
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv(""), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
 
 	// read the connection pool settings from command-line flags
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
