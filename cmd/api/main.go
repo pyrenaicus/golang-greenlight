@@ -15,13 +15,17 @@ import (
 
 	"greenlight.cnoua.org/internal/data"
 	"greenlight.cnoua.org/internal/mailer"
+	"greenlight.cnoua.org/internal/vcs"
 
 	// we alias this import to the blank identifier to stop the compiler
 	// complaining that the package isn't being used.
 	_ "github.com/lib/pq"
 )
 
-const version = "1.0.0"
+// Make version a variable and set its value to vcs.Version().
+var (
+	version = vcs.Version()
+)
 
 // a struct holding all the configuration settings for our app.
 // network port & current operating environment.
