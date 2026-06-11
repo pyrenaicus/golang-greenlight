@@ -71,9 +71,9 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
-	// read DSN value from the db-dsn command-line flag into the config struct,
-	// default to our development DSN (read from env var) if no flag is provided.
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	// Use the empty string "" as the default value for the db-dsn cli flag,
+	// rather than os.Getenv("GREENLIGHT_DB_DSN") like we were previously.
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv(""), "PostgreSQL DSN")
 
 	// read the connection pool settings from command-line flags
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
