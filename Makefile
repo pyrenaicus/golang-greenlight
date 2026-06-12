@@ -104,5 +104,7 @@ production/deploy/api:
 		&& sudo mv ~/api.service /etc/systemd/system/ \
 		&& sudo systemctl enable api \
 		&& sudo systemctl restart api \
+		&& sudo mv ~/Caddyfile /etc/caddy/ \
+		&& sudo systemctl reload caddy \
 		'
 
