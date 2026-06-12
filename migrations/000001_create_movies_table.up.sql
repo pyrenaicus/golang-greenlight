@@ -1,5 +1,5 @@
 -- ALTER DATABASE greenlight OWNER TO greenlight;
--- GRANT CREATE ON DATABASE greenlight TO greenlight;
+GRANT CREATE ON DATABASE greenlight TO greenlight;
 
 CREATE TABLE IF NOT EXISTS movies (
   id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
